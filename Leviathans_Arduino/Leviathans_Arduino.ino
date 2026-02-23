@@ -104,9 +104,9 @@ void loop() {
     motor1.setSpeed(Inputs.LeftJoystickX);
     motor2.setSpeed(Inputs.RightJoystickX);
     motor3.setSpeed(Inputs.RightJoystickX);
-    motor4.setSpeed(Inputs.R2 - Inputs.R1);
-    motor5.setSpeed(Inputs.R2 - Inputs.R1);
-    motor6.setSpeed(Inputs.R2 - Inputs.R1);
-    motor7.setSpeed(Inputs.R2 - Inputs.R1);
+    motor4.setSpeed(Inputs.R2 - Inputs.L2);
+    motor5.setSpeed(Inputs.R2 - Inputs.L2);
+    motor6.setSpeed(Inputs.R2 - Inputs.L2);
+    motor7.setSpeed(Inputs.R2 - Inputs.L2);
   }
 }
