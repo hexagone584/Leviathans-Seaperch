@@ -39,14 +39,13 @@ public:
 };
 
 struct packet {
-    uint8_t LeftJoystickX;
-    uint8_t LeftJoystickY;
-    uint8_t RightJoystickX;
-    uint8_t RightJoystickY;
-    uint8_t Joystick;
+    int8_t LeftJoystickX;
+    int8_t LeftJoystickY;
+    int8_t RightJoystickX;
+    int8_t RightJoystickY;
     uint8_t R2;
     uint8_t L2;
-    uint8_t DPad;
+    int8_t DPad;
     uint16_t Buttons;
 };
 
@@ -60,7 +59,18 @@ struct packet {
 // }
 
 packet Inputs;
-Motor motor0 = Motor(4,23,22);
+//https://www.desmos.com/calculator/mrwmjkqzsv
+
+//0-4 back motors; m0,1 left motors top to bottom; m0,1 right motors top to bottom
+//4-7 front motors; m4,5 front top motors left to right; m6,7 back top motors left to right
+Motor motor0 = Motor(4,22,23);
+Motor motor1 = Motor(5,24,25);
+Motor motor2 = Motor(6,26,27);
+Motor motor3 = Motor(7,28,29);
+Motor motor4 = Motor(8,30,31);
+Motor motor5 = Motor(9,32,33);
+Motor motor6 = Motor(10,34,35);
+Motor motor7 = Motor(11,36,37);
 
 void setup() {
   Serial.begin(9600);
@@ -86,10 +96,17 @@ void loop() {
     } 
   }
 
-  //reading the struct (condition)
+  //reading the struct (condition), and assuming this works
   if (Serial.available() >= sizeof(Inputs)) {
-
     Serial.readBytes((uint8_t*)&Inputs, sizeof(Inputs));
+    //https://www.desmos.com/calculator/mrwmjkqzsv
+    motor0.setSpeed(Inputs.LeftJoystickX);
+    motor1.setSpeed(Inputs.LeftJoystickX);
+    motor2.setSpeed(Inputs.RightJoystickX);
+    motor3.setSpeed(Inputs.RightJoystickX);
+    motor4.setSpeed(Inputs.R2 - Inputs.R1);
+    motor5.setSpeed(Inputs.R2 - Inputs.R1);
+    motor6.setSpeed(Inputs.R2 - Inputs.R1);
+    motor7.setSpeed(Inputs.R2 - Inputs.R1);
   }
-
 }
