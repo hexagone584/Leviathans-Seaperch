@@ -22,17 +22,18 @@ JoystickController controller(myusb); //instead of that
 //A5: Right Joystick (y axis, 0 is up, 255 is down)
 //A9: DPad Configs (0-7 for directions, starting at up and going clockwise. 8 is nothing's pressed)
 
-struct packet {
-    int8_t LeftJoystickX;
-    int8_t LeftJoystickY;
-    int8_t RightJoystickX;
-    int8_t RightJoystickY;
+struct __attribute__((packed)) packet {
+    int16_t LeftJoystickX;
+    int16_t LeftJoystickY;
+    int16_t RightJoystickX;
+    int16_t RightJoystickY;
     uint8_t R2;
     uint8_t L2;
     int8_t DPad;
     uint16_t Buttons;
 };
 
+packet Inputs;
 void setup() {
   //Serial Communications
   Serial.begin(9600);
@@ -45,32 +46,41 @@ void setup() {
   Serial.println("Controller's up!");
 
   //Debug
+  Serial.println(sizeof(Inputs));
   Serial.println("Teensy up");
 }
 
-packet Inputs;
+
 
 void loop() {
-  //Still Testing
+  // //Still Testing
   //Serial.println("HEY!!");
-  //SEND DATA
+  // //SEND DATA
   // Serial1.println("Hi");
+  // Serial1.flush();
   // delay(1000);
 
-  //Actual Inputs
+  // Actual Inputs
   myusb.Task();
-  Inputs.Buttons = controller.getButtons();
-  //Offsetted by 128 to get the signage matching up with 
-  //ideally I should have the teensy do the heavy calculations but I'm not sure how it works so :p
-  //https://www.desmos.com/calculator/mrwmjkqzsv
-  Inputs.LeftJoystickX = controller.getAxis(0) - 128;
-  Inputs.LeftJoystickY = controller.getAxis(1) - 128;
-  Inputs.RightJoystickX = controller.getAxis(2) - 128;
-  Inputs.RightJoystickY = controller.getAxis(5) - 128;
-  Inputs.R2 = controller.getAxis(3);
-  Inputs.L2 = controller.getAxis(4);
-  Inputs.DPad = controller.getAxis(9);
-  Serial.write((uint8_t*)&Inputs, sizeof(Inputs));
+  if (controller.available()) {
+    Inputs.Buttons = controller.getButtons();
+    //Offsetted by 128 to get the signage matching up with 
+    //ideally I should have the teensy do the heavy calculations but I'm not sure how it works so :p
+    //https://www.desmos.com/calculator/mrwmjkqzsv
+
+    //Multiplied by 2 because we want a range of -254-256 (256 is fine)
+
+    Inputs.LeftJoystickX = 2 * constrain(controller.getAxis(0) - 128, -127, 127);
+    Inputs.LeftJoystickY = 2 * constrain(controller.getAxis(1) - 128, -127, 127);
+    Inputs.RightJoystickX = 2 * constrain(controller.getAxis(2) - 128, -127, 127);
+    Inputs.RightJoystickY = 2 * constrain(controller.getAxis(5) - 128, -127, 127);
+    Inputs.R2 = controller.getAxis(3);
+    Inputs.L2 = controller.getAxis(4);
+    Inputs.DPad = controller.getAxis(9);
+    Serial.println(Inputs.LeftJoystickX);
+    Serial1.write((uint8_t*)&Inputs, sizeof(packet));
+    Serial1.flush();
+  }
 
   //3 lines for debugging
   //Serial.print("Buttons: ");
@@ -80,5 +90,9 @@ void loop() {
   //technical
   //Serial.printf(" Axes: A0: %u\tA1: %u\tA2: %u\tA3: %u\tA4: %u\tA5: %u\tA9: %u\n",controller.getAxis(0),controller.getAxis(1),controller.getAxis(2),controller.getAxis(3),controller.getAxis(4),controller.getAxis(5),controller.getAxis(9));
   //abstract
-  //Serial.printf("XLeftStick: %03u YLeftStick: %03u XRightStick: %03u YRightStick: %03u L2: %03u R2: %03u DPad: %03u\n", controller.getAxis(0),controller.getAxis(1),controller.getAxis(2),controller.getAxis(5),controller.getAxis(3),controller.getAxis(4),controller.getAxis(9));
+  // if (controller.available()) {
+  //   Serial.printf("XLeftStick: %03u YLeftStick: %03u XRightStick: %03u YRightStick: %03u L2: %03u R2: %03u DPad: %03u\n", controller.getAxis(0),controller.getAxis(1),controller.getAxis(2),controller.getAxis(5),controller.getAxis(3),controller.getAxis(4),controller.getAxis(9));
+  // }
+  Serial1.flush();
+  delay(500);
 }

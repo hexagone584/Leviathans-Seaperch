@@ -38,17 +38,26 @@ public:
   }
 };
 
-struct packet {
-    int8_t LeftJoystickX;
-    int8_t LeftJoystickY;
-    int8_t RightJoystickX;
-    int8_t RightJoystickY;
+struct __attribute__((packed)) packet {
+    int16_t LeftJoystickX;
+    int16_t LeftJoystickY;
+    int16_t RightJoystickX;
+    int16_t RightJoystickY;
     uint8_t R2;
     uint8_t L2;
     int8_t DPad;
     uint16_t Buttons;
 };
-
+// struct __attribute__((packed)) packet {
+//     int LeftJoystickX;
+//     int LeftJoystickY;
+//     int RightJoystickX;
+//     int RightJoystickY;
+//     int R2;
+//     int L2;
+//     int DPad;
+//     uint16_t Buttons;
+// };
 // char* decToBinChar(int n) {
 //     static char bin[13];
 //     for (int i = 0; i < 13 && n>0; i++) {
@@ -69,44 +78,49 @@ Motor motor2 = Motor(6,26,27);
 Motor motor3 = Motor(7,28,29);
 Motor motor4 = Motor(8,30,31);
 Motor motor5 = Motor(9,32,33);
-Motor motor6 = Motor(10,34,35);
-Motor motor7 = Motor(11,36,37);
+Motor motor6 = Motor(12,38,39);
+Motor motor7 = Motor(13,40,41);
 
 void setup() {
   Serial.begin(9600);
   Serial1.begin(9600);
   while (!Serial && !Serial1) {}
   Serial.println("Arduino Up");
+  Serial.println(sizeof(Inputs));
 }
 
 
 void loop() {
   //Test condiiton
-  if (Serial1.available()) {
-    Serial.println("HO");
-    //String reception = Serial1.readString();
-    //char reception = Serial1.read();
-    //this still carries the \n tho, but also another whitespace?? .trim() fixes it
-    String reception = Serial1.readStringUntil("\n"); 
-    reception.trim();
-    Serial.println(reception);
+  // if (Serial1.available()) {
+  //   Serial.println("HO");
+  //   //String reception = Serial1.readString();
+  //   //char reception = Serial1.read();
+  //   //this still carries the \n tho, but also another whitespace?? .trim() fixes it
+  //   String reception = Serial1.readStringUntil("\n"); 
+  //   reception.trim();
+  //   Serial.println(reception);
 
-    if (reception == "Hi Arduino") {
-      Serial.println("Running Motor1");
-    } 
-  }
-
+  //   if (reception == "Hi") {
+  //     Serial.println("Running Motor1");
+  //   } 
+  // }
+  
   //reading the struct (condition), and assuming this works
-  if (Serial.available() >= sizeof(Inputs)) {
-    Serial.readBytes((uint8_t*)&Inputs, sizeof(Inputs));
+  if (Serial1.available() >= sizeof(packet)) {
+    Serial1.readBytes((uint8_t*)&Inputs, sizeof(packet));   
+    Serial.println(Inputs.LeftJoystickX);
+
     //https://www.desmos.com/calculator/mrwmjkqzsv
-    motor0.setSpeed(Inputs.LeftJoystickX);
-    motor1.setSpeed(Inputs.LeftJoystickX);
-    motor2.setSpeed(Inputs.RightJoystickX);
-    motor3.setSpeed(Inputs.RightJoystickX);
+    motor0.setSpeed(Inputs.LeftJoystickY);
+    motor1.setSpeed(Inputs.LeftJoystickY);
+    motor2.setSpeed(Inputs.RightJoystickY);
+    motor3.setSpeed(Inputs.RightJoystickY);
     motor4.setSpeed(Inputs.R2 - Inputs.L2);
     motor5.setSpeed(Inputs.R2 - Inputs.L2);
     motor6.setSpeed(Inputs.R2 - Inputs.L2);
     motor7.setSpeed(Inputs.R2 - Inputs.L2);
   }
+
+  delay(500);
 }
