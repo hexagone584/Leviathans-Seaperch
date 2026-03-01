@@ -38,11 +38,15 @@ void setup() {
   //Serial Communications
   Serial.begin(9600);
   Serial1.begin(9600);
-  while (!Serial && !Serial1.availableForWrite()) ; // wait for Teensy Serial Monitor
+  while (!Serial && !Serial1.availableForWrite()) {}; // wait for Teensy Serial Monitor
+  Serial1.flush();
 
   //Controller Setup
   myusb.begin();
-  while (!controller.available());
+  Serial.println(controller.available());
+  while (!controller.available()) {
+
+  };
   Serial.println("Controller's up!");
 
   //Debug
@@ -62,7 +66,7 @@ void loop() {
 
   // Actual Inputs
   myusb.Task();
-  if (controller.available()) {
+  if (controller.available() && Serial1.availableForWrite()) {
     Inputs.Buttons = controller.getButtons();
     //Offsetted by 128 to get the signage matching up with 
     //ideally I should have the teensy do the heavy calculations but I'm not sure how it works so :p
@@ -71,13 +75,13 @@ void loop() {
     //Multiplied by 2 because we want a range of -254-256 (256 is fine)
 
     Inputs.LeftJoystickX = 2 * constrain(controller.getAxis(0) - 128, -127, 127);
-    Inputs.LeftJoystickY = 2 * constrain(controller.getAxis(1) - 128, -127, 127);
+    Inputs.LeftJoystickY = controller.getAxis(1);//2 * constrain(controller.getAxis(1) - 128, -127, 127);
     Inputs.RightJoystickX = 2 * constrain(controller.getAxis(2) - 128, -127, 127);
     Inputs.RightJoystickY = 2 * constrain(controller.getAxis(5) - 128, -127, 127);
     Inputs.R2 = controller.getAxis(3);
     Inputs.L2 = controller.getAxis(4);
     Inputs.DPad = controller.getAxis(9);
-    Serial.println(Inputs.LeftJoystickX);
+    Serial.println(Inputs.LeftJoystickY);
     Serial1.write((uint8_t*)&Inputs, sizeof(packet));
     Serial1.flush();
   }
@@ -93,6 +97,5 @@ void loop() {
   // if (controller.available()) {
   //   Serial.printf("XLeftStick: %03u YLeftStick: %03u XRightStick: %03u YRightStick: %03u L2: %03u R2: %03u DPad: %03u\n", controller.getAxis(0),controller.getAxis(1),controller.getAxis(2),controller.getAxis(5),controller.getAxis(3),controller.getAxis(4),controller.getAxis(9));
   // }
-  Serial1.flush();
   delay(500);
 }

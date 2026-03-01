@@ -106,20 +106,19 @@ void loop() {
   //   } 
   // }
   
-  //reading the struct (condition), and assuming this works
   if (Serial1.available() >= sizeof(packet)) {
     Serial1.readBytes((uint8_t*)&Inputs, sizeof(packet));   
-    Serial.println(Inputs.LeftJoystickX);
+    Serial.println(Inputs.LeftJoystickY);
 
     //https://www.desmos.com/calculator/mrwmjkqzsv
     motor0.setSpeed(Inputs.LeftJoystickY);
-    motor1.setSpeed(Inputs.LeftJoystickY);
-    motor2.setSpeed(Inputs.RightJoystickY);
-    motor3.setSpeed(Inputs.RightJoystickY);
-    motor4.setSpeed(Inputs.R2 - Inputs.L2);
-    motor5.setSpeed(Inputs.R2 - Inputs.L2);
-    motor6.setSpeed(Inputs.R2 - Inputs.L2);
-    motor7.setSpeed(Inputs.R2 - Inputs.L2);
+    // motor1.setSpeed(Inputs.LeftJoystickY);
+    // motor2.setSpeed(Inputs.RightJoystickY);
+    // motor3.setSpeed(Inputs.RightJoystickY);
+    // motor4.setSpeed(Inputs.R2 - Inputs.L2);
+    // motor5.setSpeed(Inputs.R2 - Inputs.L2);
+    // motor6.setSpeed(Inputs.R2 - Inputs.L2);
+    // motor7.setSpeed(Inputs.R2 - Inputs.L2);
   }
 
   delay(500);
