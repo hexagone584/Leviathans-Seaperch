@@ -1,3 +1,11 @@
+#include <PS4USB.h>
+
+// Satisfy the IDE, which needs to see the include statment in the ino too.
+#ifdef dobogusinclude
+#include <spi4teensy3.h>
+#endif
+#include <SPI.h>
+
 //Abstract Motor class to get rid of copy-paste hassles
 class Motor {
   int pwm;
@@ -38,38 +46,13 @@ public:
   }
 };
 
-struct __attribute__((packed)) packet {
-    int16_t LeftJoystickX;
-    int16_t LeftJoystickY;
-    int16_t RightJoystickX;
-    int16_t RightJoystickY;
-    uint8_t R2;
-    uint8_t L2;
-    int8_t DPad;
-    uint16_t Buttons;
-};
-// struct __attribute__((packed)) packet {
-//     int LeftJoystickX;
-//     int LeftJoystickY;
-//     int RightJoystickX;
-//     int RightJoystickY;
-//     int R2;
-//     int L2;
-//     int DPad;
-//     uint16_t Buttons;
-// };
-// char* decToBinChar(int n) {
-//     static char bin[13];
-//     for (int i = 0; i < 13 && n>0; i++) {
-//         bin[i] = 48 + n%2;
-//         n /= 2;
-//     }
-//     return bin;
-// }
 
-packet Inputs;
+USB Usb;
+PS4USB PS4(&Usb);
+bool printAngle, printTouch;
+uint8_t oldL2Value, oldR2Value;
+
 //https://www.desmos.com/calculator/mrwmjkqzsv
-
 //0-4 back motors; m0,1 left motors top to bottom; m0,1 right motors top to bottom
 //4-7 front motors; m4,5 front top motors left to right; m6,7 back top motors left to right
 Motor motor0 = Motor(4,22,23);
@@ -82,44 +65,18 @@ Motor motor6 = Motor(12,38,39);
 Motor motor7 = Motor(13,40,41);
 
 void setup() {
-  Serial.begin(9600);
-  Serial1.begin(9600);
-  while (!Serial && !Serial1) {}
-  Serial.println("Arduino Up");
-  Serial.println(sizeof(Inputs));
+  Serial.begin(115200);
+#if !defined(__MIPSEL__)
+  while (!Serial); // Wait for serial port to connect - used on Leonardo, Teensy and other boards with built-in USB CDC serial connection
+#endif
+  if (Usb.Init() == -1) {
+    Serial.print(F("\r\nOSC did not start"));
+    while (1); // Halt
+  }
+  Serial.print(F("\r\nPS4 USB Library Started"));
 }
 
 
 void loop() {
-  //Test condiiton
-  // if (Serial1.available()) {
-  //   Serial.println("HO");
-  //   //String reception = Serial1.readString();
-  //   //char reception = Serial1.read();
-  //   //this still carries the \n tho, but also another whitespace?? .trim() fixes it
-  //   String reception = Serial1.readStringUntil("\n"); 
-  //   reception.trim();
-  //   Serial.println(reception);
-
-  //   if (reception == "Hi") {
-  //     Serial.println("Running Motor1");
-  //   } 
-  // }
-  
-  if (Serial1.available() >= sizeof(packet)) {
-    Serial1.readBytes((uint8_t*)&Inputs, sizeof(packet));   
-    Serial.println(Inputs.LeftJoystickY);
-
-    //https://www.desmos.com/calculator/mrwmjkqzsv
-    motor0.setSpeed(Inputs.LeftJoystickY);
-    // motor1.setSpeed(Inputs.LeftJoystickY);
-    // motor2.setSpeed(Inputs.RightJoystickY);
-    // motor3.setSpeed(Inputs.RightJoystickY);
-    // motor4.setSpeed(Inputs.R2 - Inputs.L2);
-    // motor5.setSpeed(Inputs.R2 - Inputs.L2);
-    // motor6.setSpeed(Inputs.R2 - Inputs.L2);
-    // motor7.setSpeed(Inputs.R2 - Inputs.L2);
-  }
-
-  delay(500);
+  Usb.Task();
 }
